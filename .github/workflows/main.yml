@@ -1,0 +1,38 @@
+name: RDP Connection
+
+on:
+  workflow_dispatch:
+    inputs:
+      rdp-password:
+        description: RDP Password
+        required: true
+
+jobs:
+  rdp-connection:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install XRDP
+        run: |
+          sudo apt update
+          sudo apt install -y xrdp
+          sudo systemctl start xrdp
+          sudo systemctl enable xrdp
+
+      - name: Set RDP Password
+        run: |
+          echo "colab:$RD_PASSWORD" | sudo chpasswd
+          echo "colab:$RD_PASSWORD" | sudo chpasswd -e
+
+      - name: Get IP Address
+        run: |
+          IP_ADDRESS=$(hostname -I | awk '{print $1}')
+          echo "IP_ADDRESS=$IP_ADDRESS" >> $GITHUB_ENV
+
+      - name: Print RDP Connection String
+        run: |
+          echo "RDP Connection String: rdp://colab:$IP_ADDRESS:3389"
+          echo "RDP Password: $RD_PASSWORD"
+
+      - name: Run XRDP
+        run: |
+          sudo xrdp -n
